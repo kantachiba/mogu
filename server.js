@@ -9,18 +9,29 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // ─── Firebase Admin Init ────────────────────────────────
-function findServiceAccountKey() {
+function getServiceAccount() {
+  // 1. 環境変数からの直接読み込み (Vercel用)
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    try {
+      return JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    } catch (e) {
+      console.warn("Invalid FIREBASE_SERVICE_ACCOUNT definition.");
+    }
+  }
+
+  // 2. ローカルファイルからの読み込み
   const explicit = path.join(__dirname, 'serviceAccountKey.json');
-  if (fs.existsSync(explicit)) return explicit;
+  if (fs.existsSync(explicit)) return require(explicit);
+  
   // Auto-detect firebase admin sdk key file
   const files = fs.readdirSync(__dirname).filter(f => f.match(/-firebase-adminsdk-.*\.json$/));
-  if (files.length > 0) return path.join(__dirname, files[0]);
+  if (files.length > 0) return require(path.join(__dirname, files[0]));
+  
   return null;
 }
 
-const serviceAccountPath = findServiceAccountKey();
-if (serviceAccountPath) {
-  const serviceAccount = require(serviceAccountPath);
+const serviceAccount = getServiceAccount();
+if (serviceAccount) {
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
   });
@@ -688,8 +699,12 @@ app.get('/api/preferences', verifyAuth, async (req, res) => {
 });
 
 // ─── Start Server ───────────────────────────────────────
-app.listen(PORT, () => {
-  console.log(`\n🍽️  mogu - 献立提案アプリ`);
-  console.log(`   http://localhost:${PORT}`);
-  console.log(`   Press Ctrl+C to stop\n`);
-});
+if (process.env.NODE_ENV !== 'production' || process.env.VERCEL !== '1') {
+  app.listen(PORT, () => {
+    console.log(`\n🍽️  mogu - 献立提案アプリ`);
+    console.log(`   http://localhost:${PORT}`);
+    console.log(`   Press Ctrl+C to stop\n`);
+  });
+}
+
+module.exports = app;
