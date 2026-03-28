@@ -19,13 +19,17 @@ function getServiceAccount() {
     }
   }
 
-  // 2. ローカルファイルからの読み込み
-  const explicit = path.join(__dirname, 'serviceAccountKey.json');
-  if (fs.existsSync(explicit)) return require(explicit);
-  
-  // Auto-detect firebase admin sdk key file
-  const files = fs.readdirSync(__dirname).filter(f => f.match(/-firebase-adminsdk-.*\.json$/));
-  if (files.length > 0) return require(path.join(__dirname, files[0]));
+  // 2. ローカルファイルからの読み込み (Vercelでは実行されないことが多い)
+  try {
+    const explicit = path.join(__dirname, 'serviceAccountKey.json');
+    if (fs.existsSync(explicit)) return require(explicit);
+    
+    // Auto-detect firebase admin sdk key file
+    const files = fs.readdirSync(__dirname).filter(f => f.match(/-firebase-adminsdk-.*\.json$/));
+    if (files.length > 0) return require(path.join(__dirname, files[0]));
+  } catch (err) {
+    console.warn("Failed to load local service account file (Ignored on Vercel)");
+  }
   
   return null;
 }
