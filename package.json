@@ -1,0 +1,23 @@
+{
+  "name": "mogu3",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "dotenv": "^17.3.1",
+    "ejs": "^5.0.1",
+    "express": "^5.2.1",
+    "firebase-admin": "^13.7.0",
+    "form-data": "^4.0.5",
+    "node-fetch": "^2.7.0"
+  }
+}

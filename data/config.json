@@ -1,0 +1,10 @@
+{
+  "sakuraApiUrl": "https://api.ai.sakura.ad.jp/v1",
+  "model": "gpt-oss-120b",
+  "ttsVoice": "zundamon",
+  "allergies": [],
+  "dislikes": [],
+  "householdSize": 1,
+  "budget": 800,
+  "cookingLevel": "beginner"
+}

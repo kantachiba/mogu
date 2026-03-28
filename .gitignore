@@ -1,0 +1,21 @@
+# dependencies
+node_modules/
+
+# env / secrets
+.env
+.env.local
+.env.*.local
+serviceAccountKey.json
+*-firebase-adminsdk-*.json
+
+# uploads
+public/uploads/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# logs
+*.log
+firebase-debug.log
+firebase-debug.*.log

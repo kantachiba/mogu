@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="mogu - 一人暮らしのための献立提案アプリ。AIがあなたにぴったりの献立を提案します。">
+  <meta name="theme-color" content="#5B3A1A">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>mogu - 献立提案</title>
+  <link rel="icon" type="image/jpeg" href="/images/logo.jpg">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700;900&family=M+PLUS+Rounded+1c:wght@400;500;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+  <div id="app">
+    <!-- ========== Splash Screen ========== -->
+    <div id="splash-screen" class="screen active">
+      <div class="splash-content">
+        <img src="/images/logo.jpg" alt="mogu" class="splash-logo" />
+        <p class="splash-tagline">今日、なに食べる？</p>
+        <div class="splash-loader">
+          <div class="loader-dot"></div>
+          <div class="loader-dot"></div>
+          <div class="loader-dot"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== Login Screen ========== -->
+    <div id="login-screen" class="screen">
+      <div class="login-container">
+        <img src="/images/logo.jpg" alt="mogu" class="login-logo" />
+        <h1 class="login-title">mogu</h1>
+        <p class="login-subtitle">一人暮らしのための<br>献立提案アプリ</p>
+        <div class="login-card">
+          <h3>はじめましょう</h3>
+          <button id="btn-google-login" class="btn-google-login">
+            <svg viewBox="0 0 24 24" width="20" height="20">
+              <path fill="#4285F4"
+                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
+              <path fill="#34A853"
+                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+              <path fill="#FBBC05"
+                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+              <path fill="#EA4335"
+                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+            </svg>
+            Googleでログイン
+          </button>
+          <p class="login-footer">ログインすると、あなた専用の献立提案と<br>料理記録がクラウドに保存されます</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== Home Screen ========== -->
+    <div id="home-screen" class="screen">
+      <!-- Header -->
+      <header class="app-header">
+        <div class="header-left">
+          <img src="/images/logo.jpg" alt="mogu" class="header-logo" />
+        </div>
+        <div class="header-right">
+          <button id="btn-history" class="icon-btn" aria-label="履歴">
+            <i data-lucide="clock-3"></i>
+          </button>
+          <button id="btn-settings" class="icon-btn" aria-label="設定">
+            <i data-lucide="settings"></i>
+          </button>
+          <div class="user-menu-wrapper">
+            <button id="btn-user-menu" class="user-avatar-btn" aria-label="ユーザーメニュー">
+              <span class="avatar-fallback" id="avatar-fallback">?</span>
+            </button>
+            <div id="user-dropdown" class="user-dropdown hidden">
+              <div class="user-dropdown-email" id="user-email-display">user@example.com</div>
+              <button id="btn-logout" class="btn-logout">
+                <i data-lucide="log-out"></i>
+                ログアウト
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Greeting -->
+      <section class="greeting-section">
+        <h1 class="greeting-text" id="greeting-text">こんばんは <i data-lucide="moon"></i></h1>
+        <p class="greeting-sub">今日の献立を提案するよ！</p>
+      </section>
+
+      <!-- Meal Type Selector -->
+      <section class="meal-selector">
+        <div class="meal-chips">
+          <button class="meal-chip active" data-type="breakfast">
+            <span class="chip-emoji"><i data-lucide="sunrise"></i></span>
+            <span class="chip-label">朝食</span>
+          </button>
+          <button class="meal-chip" data-type="lunch">
+            <span class="chip-emoji"><i data-lucide="sun"></i></span>
+            <span class="chip-label">昼食</span>
+          </button>
+          <button class="meal-chip" data-type="dinner">
+            <span class="chip-emoji"><i data-lucide="moon"></i></span>
+            <span class="chip-label">夕食</span>
+          </button>
+          <button class="meal-chip" data-type="snack">
+            <span class="chip-emoji"><i data-lucide="coffee"></i></span>
+            <span class="chip-label">軽食</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Mood Selector -->
+      <section class="mood-section">
+        <h2 class="section-title">
+          <i data-lucide="smile"></i>
+          今の気分は？
+        </h2>
+        <div class="mood-grid">
+          <button class="mood-btn" data-mood="さっぱり"><i data-lucide="leaf"></i> さっぱり</button>
+          <button class="mood-btn" data-mood="がっつり"><i data-lucide="drumstick"></i> がっつり</button>
+          <button class="mood-btn" data-mood="ヘルシー"><i data-lucide="carrot"></i> ヘルシー</button>
+          <button class="mood-btn" data-mood="ピリ辛"><i data-lucide="flame"></i> ピリ辛</button>
+          <button class="mood-btn" data-mood="甘い"><i data-lucide="cookie"></i> 甘い</button>
+          <button class="mood-btn" data-mood="和食"><i data-lucide="fish"></i> 和食</button>
+          <button class="mood-btn" data-mood="洋食"><i data-lucide="pizza"></i> 洋食</button>
+          <button class="mood-btn" data-mood="中華"><i data-lucide="soup"></i> 中華</button>
+        </div>
+      </section>
+
+      <!-- Custom Request -->
+      <section class="custom-request">
+        <div class="input-group">
+          <i data-lucide="pencil" class="input-icon"></i>
+          <input type="text" id="custom-request" placeholder="リクエストがあれば入力（例: 冷蔵庫に豆腐がある）" />
+        </div>
+      </section>
+
+      <!-- Generate Button -->
+      <section class="generate-section">
+        <button id="btn-generate" class="btn-generate">
+          <i data-lucide="chef-hat"></i>
+          <span>献立を提案して！</span>
+        </button>
+      </section>
+
+      <!-- API Status -->
+      <div id="api-status" class="api-status hidden">
+        <i data-lucide="info" class="lucide-sm"></i>
+        <span id="api-status-text"></span>
+      </div>
+
+      <!-- Proposals -->
+      <section id="proposals-section" class="proposals-section hidden">
+        <h2 class="section-title">
+          <i data-lucide="sparkles"></i>
+          あなたへの提案
+        </h2>
+        <div id="proposals-container" class="proposals-container"></div>
+      </section>
+    </div>
+
+    <!-- ========== Cooking Mode Screen ========== -->
+    <div id="cooking-screen" class="screen">
+      <header class="cooking-header">
+        <button id="btn-back-cooking" class="icon-btn">
+          <i data-lucide="arrow-left"></i>
+        </button>
+        <h2 id="cooking-title" class="cooking-title">調理モード</h2>
+        <div class="cooking-header-right">
+          <button id="btn-voice-toggle" class="icon-btn voice-btn" aria-label="音声ガイド">
+            <i data-lucide="volume-2" id="voice-icon"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- Progress Bar -->
+      <div class="cooking-progress">
+        <div id="progress-bar" class="progress-bar"></div>
+        <span id="progress-text" class="progress-text">1 / 5</span>
+      </div>
+
+      <!-- Step Display -->
+      <div id="step-display" class="step-display">
+        <div class="step-card">
+          <div class="step-number-badge" id="step-badge">STEP 1</div>
+          <h3 class="step-title" id="step-title">準備</h3>
+          <p class="step-instruction" id="step-instruction">材料を用意しましょう</p>
+          <div class="step-tip hidden" id="step-tip">
+            <i data-lucide="lightbulb" class="lucide-sm"></i>
+            <span id="step-tip-text"></span>
+          </div>
+          <div class="step-time" id="step-time">
+            <i data-lucide="timer" class="lucide-sm"></i>
+            <span id="step-time-text">5分</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Voice Status -->
+      <div id="voice-status" class="voice-status hidden">
+        <div class="voice-wave">
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <span>音声ガイド再生中...</span>
+      </div>
+
+      <!-- Cooking Controls -->
+      <div class="cooking-controls">
+        <button id="btn-prev-step" class="control-btn secondary" disabled>
+          <i data-lucide="skip-back"></i>
+          <span>前へ</span>
+        </button>
+        <button id="btn-repeat-step" class="control-btn accent">
+          <i data-lucide="repeat"></i>
+          <span>もう一度</span>
+        </button>
+        <button id="btn-next-step" class="control-btn primary">
+          <span>次へ</span>
+          <i data-lucide="skip-forward"></i>
+        </button>
+      </div>
+
+      <!-- Ingredients Quick View -->
+      <div id="ingredients-drawer" class="ingredients-drawer">
+        <button id="btn-toggle-ingredients" class="drawer-toggle">
+          <i data-lucide="shopping-basket" class="lucide-sm"></i>
+          <span>材料を見る</span>
+          <i data-lucide="chevron-up" class="drawer-arrow lucide-sm"></i>
+        </button>
+        <div id="ingredients-list" class="ingredients-list hidden"></div>
+      </div>
+    </div>
+
+    <!-- ========== History Screen ========== -->
+    <div id="history-screen" class="screen">
+      <header class="sub-header">
+        <button id="btn-back-history" class="icon-btn">
+          <i data-lucide="arrow-left"></i>
+        </button>
+        <h2>料理の記録</h2>
+        <button id="btn-clear-history" class="icon-btn" aria-label="履歴削除">
+          <i data-lucide="trash-2"></i>
+        </button>
+      </header>
+      <div id="history-list" class="history-list">
+        <div class="empty-state">
+          <i data-lucide="book-open" class="empty-icon"></i>
+          <p>まだ料理の記録がありません</p>
+          <p class="empty-sub">献立を作ると自動で記録されます</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== Settings Screen ========== -->
+    <div id="settings-screen" class="screen">
+      <header class="sub-header">
+        <button id="btn-back-settings" class="icon-btn">
+          <i data-lucide="arrow-left"></i>
+        </button>
+        <h2>設定</h2>
+        <div></div>
+      </header>
+      <div class="settings-content">
+        <!-- API Settings -->
+        <div class="settings-group">
+          <h3 class="settings-group-title">
+            <i data-lucide="key-round" class="lucide-sm"></i>
+            さくらのAI 接続
+          </h3>
+          <div class="setting-item">
+            <label>APIエンドポイント</label>
+            <input type="text" id="setting-api-url" placeholder="https://api.ai.sakura.ad.jp/v1" />
+          </div>
+          <div class="setting-item">
+            <label>モデル</label>
+            <select id="setting-model">
+              <option value="gpt-oss-120b">gpt-oss-120b（推奨）</option>
+              <option value="llm-jp-3.1-8x13b-instruct4">llm-jp-3.1-8x13b</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Voice Settings -->
+        <div class="settings-group">
+          <h3 class="settings-group-title">
+            <i data-lucide="audio-lines" class="lucide-sm"></i>
+            音声ガイド
+          </h3>
+          <div class="setting-item">
+            <label>音声キャラクター</label>
+            <select id="setting-tts-voice">
+              <option value="zundamon">ずんだもん</option>
+              <option value="shikoku_metan">四国めたん</option>
+              <option value="kasukabe_tsumugi">春日部つむぎ</option>
+              <option value="meimei_himari">冥鳴ひまり</option>
+              <option value="tohoku_zunko">東北ずん子</option>
+              <option value="tohoku_kiritan">東北きりたん</option>
+              <option value="tohoku_itako">東北イタコ</option>
+              <option value="ankomon">あんこもん</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Cooking Preferences -->
+        <div class="settings-group">
+          <h3 class="settings-group-title">
+            <i data-lucide="sliders-horizontal" class="lucide-sm"></i>
+            料理の設定
+          </h3>
+          <div class="setting-item">
+            <label>料理レベル</label>
+            <select id="setting-cooking-level">
+              <option value="beginner">初心者 🔰</option>
+              <option value="intermediate">中級者 👨‍🍳</option>
+              <option value="advanced">上級者 ⭐</option>
+            </select>
+          </div>
+          <div class="setting-item">
+            <label>一食の予算（円）</label>
+            <input type="number" id="setting-budget" placeholder="800" min="100" max="5000" step="50" />
+          </div>
+          <div class="setting-item">
+            <label>アレルギー</label>
+            <div class="tag-input-wrapper">
+              <div id="allergy-tags" class="tag-list"></div>
+              <input type="text" id="setting-allergies" placeholder="追加してEnter" />
+            </div>
+          </div>
+          <div class="setting-item">
+            <label>苦手な食材</label>
+            <div class="tag-input-wrapper">
+              <div id="dislike-tags" class="tag-list"></div>
+              <input type="text" id="setting-dislikes" placeholder="追加してEnter" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Save Button -->
+        <button id="btn-save-settings" class="btn-save-settings">
+          <i data-lucide="save"></i>
+          設定を保存
+        </button>
+
+        <!-- App Info -->
+        <div class="app-info">
+          <img src="/images/logo.jpg" alt="mogu" class="info-logo" />
+          <p class="info-version">version 1.0.0</p>
+          <p class="info-desc">一人暮らしのための献立提案アプリ</p>
+          <p class="info-powered">Powered by さくらのAI Engine</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== Rating Modal ========== -->
+    <div id="rating-modal" class="modal hidden">
+      <div class="modal-overlay"></div>
+      <div class="modal-content">
+        <h3>この献立はどうでしたか？</h3>
+        <p id="rating-meal-title" class="rating-meal-title"></p>
+        <div class="star-rating" id="star-rating">
+          <button class="star" data-score="1">⭐</button>
+          <button class="star" data-score="2">⭐</button>
+          <button class="star" data-score="3">⭐</button>
+          <button class="star" data-score="4">⭐</button>
+          <button class="star" data-score="5">⭐</button>
+        </div>
+        <p class="rating-label" id="rating-label">タップして評価</p>
+        <div class="photo-capture-section">
+          <label for="camera-input" class="btn-camera" id="camera-btn-label">
+            <i data-lucide="camera"></i> 料理の写真を残す
+          </label>
+          <input type="file" id="camera-input" accept="image/*" capture="environment" class="hidden">
+
+          <div id="photo-preview-container" class="photo-preview-container hidden">
+            <img id="photo-preview" src="" alt="Cooking Result">
+            <button id="btn-remove-photo" class="icon-btn remove-photo-btn" aria-label="写真を削除">
+              <i data-lucide="x"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button id="btn-skip-rating" class="btn-modal secondary">スキップ</button>
+          <button id="btn-submit-rating" class="btn-modal primary" disabled>送信</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== Loading Overlay ========== -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+      <div class="loading-content">
+        <div class="cooking-animation">
+          <div class="pot"><i data-lucide="soup"></i></div>
+          <div class="steam">
+            <span>~</span><span>~</span><span>~</span>
+          </div>
+        </div>
+        <p class="loading-text">AIが献立を考え中...</p>
+      </div>
+    </div>
+
+    <!-- ========== Toast ========== -->
+    <div id="toast" class="toast hidden">
+      <i class="toast-icon lucide-sm" id="toast-icon-el"></i>
+      <span class="toast-message"></span>
+    </div>
+  </div>
+
+  <!-- Firebase SDK (compat mode for simplicity) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+
+  <script>
+    // ─── Firebase Config ───────────────────────────────────
+    // TODO: Replace with your Firebase project config
+    const firebaseConfig = {
+      apiKey: "AIzaSyBiKK9godmx1VKVpBC_aS0rva3-kzf1FZs",
+      authDomain: "mogu-6000c.firebaseapp.com",
+      projectId: "mogu-6000c",
+      storageBucket: "mogu-6000c.firebasestorage.app",
+      messagingSenderId: "129685481080",
+      appId: "1:129685481080:web:f9a8ce541cfe6b703f6f8d",
+      measurementId: "G-W6EBYRQ6TD"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // ─── Initialize Lucide Icons ───────────────────────────
+    lucide.createIcons();
+
+    // ─── State ──────────────────────────────────────────────
+    const state = {
+      currentScreen: 'splash',
+      mealType: 'dinner',
+      mood: null,
+      proposals: null,
+      selectedProposal: null,
+      recipe: null,
+      currentStep: 0,
+      voiceEnabled: true,
+      isPlaying: false,
+      ratingScore: 0,
+      currentHistoryId: null,
+      photoBase64: null,
+      config: {},
+      user: null,
+      idToken: null
+    };
+
+    // ─── DOM References ─────────────────────────────────────
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => document.querySelectorAll(sel);
+
+    // Helper to refresh Lucide icons after dynamic content
+    function refreshIcons() {
+      lucide.createIcons();
+    }
+
+    // ─── Auth Helper: get fresh ID token ──────────────────
+    async function getAuthHeaders() {
+      if (!state.user) throw new Error('Not logged in');
+      const token = await state.user.getIdToken();
+      return {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      };
+    }
+
+    // Wrapper for authenticated fetch
+    async function authFetch(url, options = {}) {
+      const headers = await getAuthHeaders();
+      return fetch(url, {
+        ...options,
+        headers: {
+          ...headers,
+          ...(options.headers || {})
+        }
+      });
+    }
+
+    // ─── Screen Navigation ─────────────────────────────────
+    function showScreen(screenId) {
+      $$('.screen').forEach(s => s.classList.remove('active'));
+      $(`#${screenId}-screen`).classList.add('active');
+      state.currentScreen = screenId;
+      refreshIcons();
+    }
+
+    // ─── Auth State Observer ──────────────────────────────
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        state.user = user;
+        state.idToken = await user.getIdToken();
+
+        // Update avatar
+        const avatarBtn = $('#btn-user-menu');
+        if (user.photoURL) {
+          avatarBtn.innerHTML = `<img src="${user.photoURL}" alt="avatar" referrerpolicy="no-referrer" />`;
+        } else {
+          const initial = (user.displayName || user.email || '?')[0].toUpperCase();
+          avatarBtn.innerHTML = `<span class="avatar-fallback">${initial}</span>`;
+        }
+
+        // Update email display
+        $('#user-email-display').textContent = user.email || '';
+
+        // Show home
+        showScreen('home');
+        updateGreeting();
+        loadConfig();
+      } else {
+        state.user = null;
+        state.idToken = null;
+        showScreen('login');
+      }
+    });
+
+    // ─── Login ─────────────────────────────────────────────
+    // Splash → check auth after 1.5s
+    setTimeout(() => {
+      // If auth state hasn't resolved yet, it will be handled by onAuthStateChanged
+      if (!state.user && state.currentScreen === 'splash') {
+        showScreen('login');
+      }
+    }, 2000);
+
+    $('#btn-google-login').addEventListener('click', async () => {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      try {
+        await auth.signInWithPopup(provider);
+        // onAuthStateChanged will handle the rest
+      } catch (e) {
+        console.error('Login error:', e);
+        if (e.code !== 'auth/popup-closed-by-user') {
+          showToast('ログインに失敗しました', 'error');
+        }
+      }
+    });
+
+    // ─── User Menu ─────────────────────────────────────────
+    let userMenuOpen = false;
+
+    $('#btn-user-menu').addEventListener('click', (e) => {
+      e.stopPropagation();
+      userMenuOpen = !userMenuOpen;
+      $('#user-dropdown').classList.toggle('hidden', !userMenuOpen);
+    });
+
+    document.addEventListener('click', () => {
+      if (userMenuOpen) {
+        userMenuOpen = false;
+        $('#user-dropdown').classList.add('hidden');
+      }
+    });
+
+    $('#btn-logout').addEventListener('click', async () => {
+      await auth.signOut();
+      userMenuOpen = false;
+      $('#user-dropdown').classList.add('hidden');
+      showToast('ログアウトしました', 'info');
+    });
+
+    // ─── Greeting based on time ────────────────────────────
+    function updateGreeting() {
+      const hour = new Date().getHours();
+      let greeting, emoji, defaultMeal;
+      if (hour >= 5 && hour < 10) {
+        greeting = 'おはよう'; emoji = 'sunrise'; defaultMeal = 'breakfast';
+      } else if (hour >= 10 && hour < 14) {
+        greeting = 'こんにちは'; emoji = 'sun'; defaultMeal = 'lunch';
+      } else if (hour >= 14 && hour < 17) {
+        greeting = 'こんにちは'; emoji = 'sunset'; defaultMeal = 'snack';
+      } else {
+        greeting = 'こんばんは'; emoji = 'moon'; defaultMeal = 'dinner';
+      }
+
+      // Use first name if available
+      const name = state.user?.displayName?.split(' ')[0] || '';
+      const nameStr = name ? `、${name}さん` : '';
+      $('#greeting-text').innerHTML = `${greeting}${nameStr} <i data-lucide="${emoji}"></i>`;
+      refreshIcons();
+
+      // Auto-select meal type
+      state.mealType = defaultMeal;
+      $$('.meal-chip').forEach(c => {
+        c.classList.toggle('active', c.dataset.type === defaultMeal);
+      });
+    }
+
+    // ─── Meal Type Selection ──────────────────────────────
+    $$('.meal-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        $$('.meal-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        state.mealType = chip.dataset.type;
+      });
+    });
+
+    // ─── Mood Selection ───────────────────────────────────
+    $$('.mood-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (btn.classList.contains('active')) {
+          btn.classList.remove('active');
+          state.mood = null;
+        } else {
+          $$('.mood-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          state.mood = btn.dataset.mood;
+        }
+      });
+    });
+
+    // ─── Navigation ───────────────────────────────────────
+    $('#btn-history').addEventListener('click', () => {
+      showScreen('history');
+      loadHistory();
+    });
+
+    $('#btn-settings').addEventListener('click', () => {
+      showScreen('settings');
+      loadSettingsUI();
+    });
+
+    $('#btn-back-history').addEventListener('click', () => showScreen('home'));
+    $('#btn-back-settings').addEventListener('click', () => showScreen('home'));
+    $('#btn-back-cooking').addEventListener('click', () => {
+      if (state.isPlaying) stopAudio();
+      showRatingModal();
+    });
+
+    // ─── Generate Proposals ───────────────────────────────
+    $('#btn-generate').addEventListener('click', async () => {
+      const customRequest = $('#custom-request').value.trim();
+      showLoading(true);
+
+      try {
+        const res = await authFetch('/api/generate', {
+          method: 'POST',
+          body: JSON.stringify({
+            mealType: state.mealType,
+            mood: state.mood,
+            customRequest
+          })
+        });
+
+        const data = await res.json();
+        state.proposals = data.proposals;
+
+        if (data._mock) {
+          showApiStatus(`AI接続に失敗したためサンプルデータを表示中です。（${data._error || '不明なエラー'}）`, 'warning');
+        } else {
+          hideApiStatus();
+        }
+
+        renderProposals(data.proposals);
+      } catch (e) {
+        console.error(e);
+        showToast('エラーが発生しました', 'error');
+      } finally {
+        showLoading(false);
+      }
+    });
+
+    // ─── Render Proposals ─────────────────────────────────
+    function renderProposals(proposals) {
+      const container = $('#proposals-container');
+      container.innerHTML = '';
+
+      proposals.forEach((p, idx) => {
+        const card = document.createElement('div');
+        card.className = 'proposal-card';
+        card.style.animationDelay = `${idx * 0.15}s`;
+        card.innerHTML = `
+        <div class="proposal-badge ${idx === 0 ? 'badge-homemade' : 'badge-retort'}">${idx === 0 ? '🍳 手作りプラン' : '📦 レトルトプラン'}</div>
+        <h3 class="proposal-title">${p.title}</h3>
+        <p class="proposal-desc">${p.description || ''}</p>
+        <div class="proposal-meta">
+          <span class="meta-item"><i data-lucide="clock" class="lucide-xs"></i>${p.time}</span>
+          <span class="meta-item"><i data-lucide="flame" class="lucide-xs"></i>${p.calories}</span>
+          <span class="meta-item"><i data-lucide="wallet" class="lucide-xs"></i>${p.cost}</span>
+        </div>
+        <div class="proposal-menu">
+          <div class="menu-item"><span class="menu-label">🍚 主食</span><span>${p.menu.main_staple}</span></div>
+          <div class="menu-item"><span class="menu-label">🍖 主菜</span><span>${p.menu.main_dish}</span></div>
+          <div class="menu-item"><span class="menu-label">🥗 副菜</span><span>${p.menu.side_dish}</span></div>
+        </div>
+        <div class="proposal-ingredients">
+          <h4><i data-lucide="shopping-bag" class="lucide-xs"></i>材料（一人前）</h4>
+          <div class="ingredient-chips">
+            ${p.ingredients.map(i => `<span class="ingredient-chip">${i.name} <small>${i.amount}</small></span>`).join('')}
+          </div>
+        </div>
+        <div class="proposal-tags">
+          ${(p.tags || []).map(t => `<span class="tag">${t}</span>`).join('')}
+        </div>
+        <button class="btn-select" data-index="${idx}">
+          <i data-lucide="utensils-crossed"></i>
+          この献立で作る！
+        </button>
+      `;
+        container.appendChild(card);
+      });
+
+      // Refresh Lucide icons for dynamic content
+      refreshIcons();
+
+      // Show proposals section
+      $('#proposals-section').classList.remove('hidden');
+      $('#proposals-section').scrollIntoView({ behavior: 'smooth' });
+
+      // Select buttons
+      $$('.btn-select').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = parseInt(btn.dataset.index);
+          selectProposal(idx);
+        });
+      });
+    }
+
+    // ─── Select Proposal → Start Cooking ──────────────────
+    async function selectProposal(idx) {
+      const proposal = state.proposals[idx];
+      state.selectedProposal = proposal;
+
+      showLoading(true, '調理ステップを準備中...');
+
+      try {
+        // Save to history
+        const histRes = await authFetch('/api/history', {
+          method: 'POST',
+          body: JSON.stringify({ proposal })
+        });
+        const histData = await histRes.json();
+        state.currentHistoryId = histData.id;
+
+        // Get recipe steps
+        const res = await authFetch('/api/recipe', {
+          method: 'POST',
+          body: JSON.stringify({ proposal })
+        });
+
+        const recipe = await res.json();
+        state.recipe = recipe;
+        state.currentStep = 0;
+
+        // Setup cooking screen
+        $('#cooking-title').textContent = proposal.title;
+        renderIngredientsDrawer(proposal.ingredients);
+        renderStep(0);
+        showScreen('cooking');
+
+        // Auto-play voice for first step
+        if (state.voiceEnabled) {
+          setTimeout(() => speakStep(0), 500);
+        }
+      } catch (e) {
+        console.error(e);
+        showToast('レシピの取得に失敗しました', 'error');
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    // ─── Render Step ──────────────────────────────────────
+    function renderStep(idx) {
+      const steps = state.recipe.steps;
+      const step = steps[idx];
+
+      $('#step-badge').textContent = `STEP ${step.step}`;
+      $('#step-title').textContent = step.title;
+      $('#step-instruction').textContent = step.instruction;
+
+      if (step.tip) {
+        $('#step-tip').classList.remove('hidden');
+        $('#step-tip-text').textContent = step.tip;
+      } else {
+        $('#step-tip').classList.add('hidden');
+      }
+
+      $('#step-time-text').textContent = step.time || '';
+      $('#progress-text').textContent = `${idx + 1} / ${steps.length}`;
+      $('#progress-bar').style.width = `${((idx + 1) / steps.length) * 100}%`;
+
+      // Button states
+      $('#btn-prev-step').disabled = idx === 0;
+      if (idx === steps.length - 1) {
+        $('#btn-next-step').innerHTML = '<span>完成！</span><i data-lucide="party-popper"></i>';
+      } else {
+        $('#btn-next-step').innerHTML = '<span>次へ</span><i data-lucide="skip-forward"></i>';
+      }
+      refreshIcons();
+
+      // Animate card
+      const card = $('.step-card');
+      card.classList.remove('slide-in');
+      void card.offsetWidth; // trigger reflow
+      card.classList.add('slide-in');
+    }
+
+    // ─── Render Ingredients Drawer ────────────────────────
+    function renderIngredientsDrawer(ingredients) {
+      const list = $('#ingredients-list');
+      list.innerHTML = ingredients.map(i =>
+        `<div class="ingredient-row">
+        <span class="ingredient-name">${i.name}</span>
+        <span class="ingredient-amount">${i.amount}</span>
+      </div>`
+      ).join('');
+    }
+
+    // ─── Cooking Controls ─────────────────────────────────
+    $('#btn-prev-step').addEventListener('click', () => {
+      if (state.currentStep > 0) {
+        state.currentStep--;
+        renderStep(state.currentStep);
+        if (state.voiceEnabled) speakStep(state.currentStep);
+      }
+    });
+
+    $('#btn-next-step').addEventListener('click', () => {
+      const steps = state.recipe.steps;
+      if (state.currentStep < steps.length - 1) {
+        state.currentStep++;
+        renderStep(state.currentStep);
+        if (state.voiceEnabled) speakStep(state.currentStep);
+      } else {
+        // Finished!
+        stopAudio();
+        showRatingModal();
+      }
+    });
+
+    $('#btn-repeat-step').addEventListener('click', () => {
+      speakStep(state.currentStep);
+    });
+
+    // ─── Ingredients Drawer Toggle ────────────────────────
+    $('#btn-toggle-ingredients').addEventListener('click', () => {
+      const list = $('#ingredients-list');
+      const arrow = $('.drawer-arrow');
+      list.classList.toggle('hidden');
+      arrow.style.transform = list.classList.contains('hidden') ? '' : 'rotate(180deg)';
+    });
+
+    // ─── Voice Toggle ────────────────────────────────────
+    $('#btn-voice-toggle').addEventListener('click', () => {
+      state.voiceEnabled = !state.voiceEnabled;
+      const iconEl = $('#voice-icon');
+      iconEl.setAttribute('data-lucide', state.voiceEnabled ? 'volume-2' : 'volume-x');
+      refreshIcons();
+      if (!state.voiceEnabled) stopAudio();
+    });
+
+    // ─── TTS (Sakura AI Audio Speech) ─────────────────────
+    let currentAudio = null;
+
+    async function speakStep(idx) {
+      if (!state.voiceEnabled) return;
+      stopAudio();
+
+      const step = state.recipe.steps[idx];
+      const text = `ステップ${step.step}、${step.title}。${step.instruction}`;
+
+      // Show voice status
+      $('#voice-status').classList.remove('hidden');
+      state.isPlaying = true;
+
+      try {
+        const res = await authFetch('/api/tts', {
+          method: 'POST',
+          body: JSON.stringify({ text })
+        });
+
+        if (res.ok) {
+          const blob = await res.blob();
+          const url = URL.createObjectURL(blob);
+          currentAudio = new Audio(url);
+          currentAudio.play();
+          currentAudio.onended = () => {
+            state.isPlaying = false;
+            $('#voice-status').classList.add('hidden');
+            URL.revokeObjectURL(url);
+          };
+          currentAudio.onerror = () => {
+            // Fallback to browser TTS
+            fallbackTTS(text);
+          };
+        } else {
+          // Use browser TTS as fallback
+          fallbackTTS(text);
+        }
+      } catch (e) {
+        console.error('TTS error:', e);
+        fallbackTTS(text);
+      }
+    }
+
+    function fallbackTTS(text) {
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'ja-JP';
+        utterance.rate = 0.9;
+        utterance.onend = () => {
+          state.isPlaying = false;
+          $('#voice-status').classList.add('hidden');
+        };
+        window.speechSynthesis.speak(utterance);
+      } else {
+        state.isPlaying = false;
+        $('#voice-status').classList.add('hidden');
+      }
+    }
+
+    function stopAudio() {
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio = null;
+      }
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+      state.isPlaying = false;
+      $('#voice-status').classList.add('hidden');
+    }
+
+    function showRatingModal() {
+      if (!state.selectedProposal) {
+        showScreen('home');
+        return;
+      }
+      $('#rating-meal-title').textContent = state.selectedProposal.title;
+      state.ratingScore = 0;
+      updateStars(0);
+      $('#btn-submit-rating').disabled = true;
+      $('#rating-label').textContent = 'タップして評価';
+
+      // Reset photo state
+      state.photoBase64 = null;
+      $('#camera-input').value = '';
+      $('#camera-btn-label').classList.remove('hidden');
+      $('#photo-preview-container').classList.add('hidden');
+      $('#photo-preview').src = '';
+
+      $('#rating-modal').classList.remove('hidden');
+    }
+
+    function hideRatingModal() {
+      $('#rating-modal').classList.add('hidden');
+    }
+
+    $$('#star-rating .star').forEach(star => {
+      star.addEventListener('click', () => {
+        const score = parseInt(star.dataset.score);
+        state.ratingScore = score;
+        updateStars(score);
+        $('#btn-submit-rating').disabled = false;
+        const labels = ['', '😞 いまいち', '🤔 まぁまぁ', '😊 普通', '😋 おいしい！', '🤩 最高！'];
+        $('#rating-label').textContent = labels[score];
+      });
+    });
+
+    function updateStars(score) {
+      $$('#star-rating .star').forEach(s => {
+        const val = parseInt(s.dataset.score);
+        s.classList.toggle('active', val <= score);
+      });
+    }
+
+    // Camera handling
+    $('#camera-input').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        state.photoBase64 = ev.target.result;
+        $('#photo-preview').src = state.photoBase64;
+        $('#camera-btn-label').classList.add('hidden');
+        $('#photo-preview-container').classList.remove('hidden');
+      };
+      reader.readAsDataURL(file);
+    });
+
+    $('#btn-remove-photo').addEventListener('click', () => {
+      state.photoBase64 = null;
+      $('#camera-input').value = '';
+      $('#photo-preview').src = '';
+      $('#photo-preview-container').classList.add('hidden');
+      $('#camera-btn-label').classList.remove('hidden');
+    });
+
+    $('#btn-skip-rating').addEventListener('click', () => {
+      hideRatingModal();
+      showScreen('home');
+    });
+
+    $('#btn-submit-rating').addEventListener('click', async () => {
+      await authFetch('/api/rate', {
+        method: 'POST',
+        body: JSON.stringify({
+          historyId: state.currentHistoryId,
+          title: state.selectedProposal.title,
+          score: state.ratingScore,
+          tags: state.selectedProposal.tags || [],
+          photoBase64: state.photoBase64
+        })
+      });
+      hideRatingModal();
+      showToast('記録を保存しました！', 'success');
+      showScreen('home');
+    });
+
+    // Close modal on overlay click
+    $('.modal-overlay').addEventListener('click', () => {
+      hideRatingModal();
+      showScreen('home');
+    });
+
+    // ─── History ──────────────────────────────────────────
+    async function loadHistory() {
+      try {
+        const res = await authFetch('/api/history');
+        const history = await res.json();
+        renderHistory(history);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function renderHistory(history) {
+      const list = $('#history-list');
+      if (!history || history.length === 0) {
+        list.innerHTML = `
+        <div class="empty-state">
+          <i data-lucide="book-open" class="empty-icon"></i>
+          <p>まだ料理の記録がありません</p>
+          <p class="empty-sub">献立を作ると自動で記録されます</p>
+        </div>`;
+        refreshIcons();
+        return;
+      }
+
+      list.innerHTML = history.map(h => {
+        const date = new Date(h.cookedAt);
+        const dateStr = `${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
+        return `
+        <div class="history-card">
+          ${h.photo ? `<div class="history-photo"><img src="${h.photo}" alt="${h.title}"></div>` : ''}
+          <div class="history-card-content">
+            <div class="history-date">${dateStr}</div>
+            <h3 class="history-title">${h.title}</h3>
+            <div class="history-meta">
+              <span>${h.time}</span>
+              <span>${h.calories}</span>
+              <span>${h.cost}</span>
+            </div>
+            <div class="history-menu">
+              ${h.menu.main_staple} ・ ${h.menu.main_dish} ・ ${h.menu.side_dish}
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+      refreshIcons();
+    }
+
+    $('#btn-clear-history').addEventListener('click', async () => {
+      if (!confirm('履歴をすべて削除しますか？')) return;
+      await authFetch('/api/history', { method: 'DELETE' });
+      loadHistory();
+      showToast('履歴を削除しました', 'success');
+    });
+
+    // ─── Settings ─────────────────────────────────────────
+    async function loadConfig() {
+      try {
+        const res = await authFetch('/api/config');
+        state.config = await res.json();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function loadSettingsUI() {
+      const c = state.config;
+      $('#setting-api-url').value = c.sakuraApiUrl || 'https://api.ai.sakura.ad.jp/v1';
+      $('#setting-model').value = c.model || 'gpt-oss-120b';
+      $('#setting-tts-voice').value = c.ttsVoice || 'zundamon';
+      $('#setting-cooking-level').value = c.cookingLevel || 'beginner';
+      $('#setting-budget').value = c.budget || 800;
+
+      renderTags('allergy-tags', c.allergies || []);
+      renderTags('dislike-tags', c.dislikes || []);
+    }
+
+    function renderTags(containerId, tags) {
+      const container = $(`#${containerId}`);
+      container.innerHTML = tags.map(t =>
+        `<span class="setting-tag">${t} <button class="tag-remove" data-container="${containerId}" data-tag="${t}">×</button></span>`
+      ).join('');
+
+      // Re-attach remove listeners
+      container.querySelectorAll('.tag-remove').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const tag = btn.dataset.tag;
+          const cId = btn.dataset.container;
+          const tagElements = $(`#${cId}`).querySelectorAll('.setting-tag');
+          const remaining = [];
+          tagElements.forEach(el => {
+            const text = el.textContent.replace('×', '').trim();
+            if (text !== tag) remaining.push(text);
+          });
+          renderTags(cId, remaining);
+        });
+      });
+    }
+
+    // Tag input handling
+    ['setting-allergies', 'setting-dislikes'].forEach(inputId => {
+      const input = $(`#${inputId}`);
+      const containerId = inputId === 'setting-allergies' ? 'allergy-tags' : 'dislike-tags';
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && input.value.trim()) {
+          e.preventDefault();
+          const existing = [];
+          $(`#${containerId}`).querySelectorAll('.setting-tag').forEach(el => {
+            existing.push(el.textContent.replace('×', '').trim());
+          });
+          existing.push(input.value.trim());
+          renderTags(containerId, existing);
+          input.value = '';
+        }
+      });
+    });
+
+    $('#btn-save-settings').addEventListener('click', async () => {
+      const allergies = [];
+      $('#allergy-tags').querySelectorAll('.setting-tag').forEach(el => {
+        allergies.push(el.textContent.replace('×', '').trim());
+      });
+
+      const dislikes = [];
+      $('#dislike-tags').querySelectorAll('.setting-tag').forEach(el => {
+        dislikes.push(el.textContent.replace('×', '').trim());
+      });
+
+      const config = {
+        sakuraApiUrl: $('#setting-api-url').value,
+        model: $('#setting-model').value,
+        ttsVoice: $('#setting-tts-voice').value,
+        cookingLevel: $('#setting-cooking-level').value,
+        budget: parseInt($('#setting-budget').value) || 800,
+        allergies,
+        dislikes
+      };
+
+      try {
+        await authFetch('/api/config', {
+          method: 'POST',
+          body: JSON.stringify(config)
+        });
+        state.config = config;
+        showToast('設定を保存しました', 'success');
+        showScreen('home');
+      } catch (e) {
+        showToast('設定の保存に失敗しました', 'error');
+      }
+    });
+
+    // ─── API Status ───────────────────────────────────────
+    function showApiStatus(msg, type) {
+      const el = $('#api-status');
+      el.classList.remove('hidden', 'warning', 'error', 'success');
+      el.classList.add(type);
+      $('#api-status-text').textContent = msg;
+    }
+
+    function hideApiStatus() {
+      $('#api-status').classList.add('hidden');
+    }
+
+    // ─── Loading Overlay ──────────────────────────────────
+    function showLoading(show, text) {
+      if (show) {
+        $('#loading-overlay').classList.remove('hidden');
+        if (text) $('.loading-text').textContent = text;
+      } else {
+        $('#loading-overlay').classList.add('hidden');
+      }
+    }
+
+    // ─── Toast ────────────────────────────────────────────
+    function showToast(message, type = 'info') {
+      const toast = $('#toast');
+      const iconEl = $('#toast-icon-el');
+      const msg = toast.querySelector('.toast-message');
+
+      const icons = { success: 'check-circle', error: 'circle-x', info: 'info', warning: 'triangle-alert' };
+      iconEl.setAttribute('data-lucide', icons[type] || 'info');
+      msg.textContent = message;
+
+      toast.className = `toast ${type}`;
+      refreshIcons();
+      setTimeout(() => toast.classList.add('hidden'), 3000);
+    }
+  </script>
+</body>
+
+</html>
