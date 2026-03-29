@@ -47,11 +47,15 @@ const db = admin.firestore();
 
 // ─── Local Fallback Config ──────────────────────────────
 const FormData = require('form-data');
-const UPLOADS_DIR = path.join(__dirname, 'public', 'uploads');
-if (!fs.existsSync(UPLOADS_DIR)) {
-  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+const isVercel = process.env.VERCEL === '1';
+const UPLOADS_DIR = isVercel ? path.join('/tmp', 'uploads') : path.join(__dirname, 'public', 'uploads');
+try {
+  if (!fs.existsSync(UPLOADS_DIR)) {
+    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+  }
+} catch (e) {
+  console.warn("Failed to create uploads directory:", e.message);
 }
-
 // ─── API Keys ───────────────────────────────────────────
 const SAKURA_API_KEY = process.env.SAKURA_API_KEY || '';
 
