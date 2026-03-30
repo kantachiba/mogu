@@ -421,7 +421,7 @@
     // TODO: Replace with your Firebase project config
     const firebaseConfig = {
       apiKey: "AIzaSyBiKK9godmx1VKVpBC_aS0rva3-kzf1FZs",
-      authDomain: "mogu-6000c.firebaseapp.com",
+      authDomain: window.location.hostname === 'localhost' ? "mogu-6000c.firebaseapp.com" : window.location.hostname,
       projectId: "mogu-6000c",
       storageBucket: "mogu-6000c.firebasestorage.app",
       messagingSenderId: "129685481080",
@@ -534,24 +534,13 @@
     $('#btn-google-login').addEventListener('click', async () => {
       const provider = new firebase.auth.GoogleAuthProvider();
       try {
-        // セキュリティが厳しい環境（SafariやChrome一部設定）でも動くように
-        // ポップアップではなくリダイレクト方式に変更
-        await auth.signInWithRedirect(provider);
+        // 同じドメイン（ホスト）に設定されたため、ポップアップが安全に動くようになります
+        await auth.signInWithPopup(provider);
       } catch (e) {
         console.error('Login error:', e);
         if (e.code !== 'auth/popup-closed-by-user') {
           showToast('ログインに失敗しました', 'error');
         }
-      }
-    });
-
-    // リダイレクト後のエラーを受け取る処理
-    auth.getRedirectResult().catch(e => {
-      console.error('Redirect result error:', e);
-      if (e.message && e.message.includes('initial state')) {
-        showToast('ブラウザのCookie設定を確認してください', 'error');
-      } else {
-        showToast('ログイン処理中にエラーが発生しました', 'error');
       }
     });
 
