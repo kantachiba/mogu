@@ -1,8 +1,11 @@
 {
   "name": "mogu3",
   "version": "1.0.0",
+  "engines": {
+    "node": "20"
+  },
   "description": "",
-  "main": "server.js",
+  "main": "index.js",
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
@@ -17,7 +20,11 @@
     "ejs": "^5.0.1",
     "express": "^5.2.1",
     "firebase-admin": "^13.7.0",
+    "firebase-functions": "^7.2.2",
     "form-data": "^4.0.5",
     "node-fetch": "^2.7.0"
+  },
+  "devDependencies": {
+    "firebase-tools": "^15.12.0"
   }
 }
