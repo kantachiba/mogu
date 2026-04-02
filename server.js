@@ -23,14 +23,14 @@ function getServiceAccount() {
   try {
     const explicit = path.join(__dirname, 'serviceAccountKey.json');
     if (fs.existsSync(explicit)) return require(explicit);
-    
+
     // Auto-detect firebase admin sdk key file
     const files = fs.readdirSync(__dirname).filter(f => f.match(/-firebase-adminsdk-.*\.json$/));
     if (files.length > 0) return require(path.join(__dirname, files[0]));
   } catch (err) {
     console.warn("Failed to load local service account file (Ignored on Vercel)");
   }
-  
+
   return null;
 }
 
@@ -47,8 +47,8 @@ const db = admin.firestore();
 
 // ─── Local Fallback Config ──────────────────────────────
 const FormData = require('form-data');
-const isVercel = process.env.VERCEL === '1';
-const UPLOADS_DIR = isVercel ? path.join('/tmp', 'uploads') : path.join(__dirname, 'public', 'uploads');
+const isServerless = process.env.VERCEL === '1' || process.env.FUNCTION_NAME || process.env.K_SERVICE;
+const UPLOADS_DIR = isServerless ? path.join('/tmp', 'uploads') : path.join(__dirname, 'public', 'uploads');
 try {
   if (!fs.existsSync(UPLOADS_DIR)) {
     fs.mkdirSync(UPLOADS_DIR, { recursive: true });
@@ -92,7 +92,8 @@ async function getUserConfig(uid) {
     dislikes: [],
     householdSize: 1,
     budget: 800,
-    cookingLevel: 'beginner'
+    cookingLevel: 'beginner',
+    menuItems: ['主食', '主菜', '副菜']
   };
 }
 
@@ -274,7 +275,7 @@ ${config.cookingLevel || 'beginner'}
   try {
     const tmpPath = path.join(UPLOADS_DIR, `preferences_${uid}.md`);
     fs.writeFileSync(tmpPath, docContent);
-    
+
     // Cleanup old RAG doc if it exists
     const oldDoc = await getRagDoc(uid);
     if (oldDoc.id) {
@@ -373,6 +374,9 @@ app.post('/api/generate', verifyAuth, async (req, res) => {
     'snack': '軽食・おやつ'
   }[mealType] || '夕食';
 
+  const targetMenuItems = (config.menuItems && config.menuItems.length > 0) ? config.menuItems : ['主食', '主菜', '副菜'];
+  const expectedMenuKeysStr = targetMenuItems.map(i => `"${i}": "メニュー名（例: 〇〇）"`).join(',\n        ');
+
   const systemPrompt = `あなたは一人暮らしの料理アシスタント「mogu」です。
 栄養バランスが良く、簡単に作れて、コスパの良い一人前の献立を提案します。
 
@@ -393,9 +397,7 @@ ${preferencesContext}
       "calories": "総カロリー（例: 550kcal）",
       "cost": "概算費用（例: 450円）",
       "menu": {
-        "main_staple": "主食（例: ご飯）",
-        "main_dish": "主菜（例: 鶏の照り焼き）",
-        "side_dish": "副菜（例: ほうれん草のお浸し）"
+        ${expectedMenuKeysStr}
       },
       "ingredients": [
         {"name": "材料名", "amount": "量"}
@@ -472,9 +474,9 @@ ${preferencesContext}
           calories: '520kcal',
           cost: '480円',
           menu: {
-            main_staple: 'ご飯',
-            main_dish: '鮭のバター醤油焼き',
-            side_dish: '小松菜のお浸し'
+            '主食': 'ご飯',
+            '主菜': '鮭のバター醤油焼き',
+            '副菜': '小松菜のお浸し'
           },
           ingredients: [
             { name: '鮭切り身', amount: '1切れ' },
@@ -494,9 +496,9 @@ ${preferencesContext}
           calories: '650kcal',
           cost: '400円',
           menu: {
-            main_staple: 'サトウのごはん',
-            main_dish: 'ボンカレーゴールド（中辛）',
-            side_dish: 'カット野菜サラダ'
+            '主食': 'サトウのごはん',
+            '主菜': 'ボンカレーゴールド（中辛）',
+            '副菜': 'カット野菜サラダ'
           },
           ingredients: [
             { name: 'ボンカレーゴールド', amount: '1箱' },
@@ -539,12 +541,11 @@ app.post('/api/recipe', verifyAuth, async (req, res) => {
   "tips": ["全体のコツ1", "全体のコツ2"]
 }`;
 
+  const menuStr = Object.entries(proposal.menu).map(([k, v]) => `${k}: ${v}`).join('\n');
   const userMessage = `以下の献立の詳細な作り方をステップ形式で教えてください。
 
 タイトル: ${proposal.title}
-主食: ${proposal.menu.main_staple}
-主菜: ${proposal.menu.main_dish}
-副菜: ${proposal.menu.side_dish}
+${menuStr}
 材料: ${proposal.ingredients.map(i => `${i.name} ${i.amount}`).join('、')}`;
 
   try {
@@ -689,12 +690,15 @@ app.post('/api/rate', verifyAuth, async (req, res) => {
 
 // ─── API: Save to History ───────────────────────────────
 app.post('/api/history', verifyAuth, async (req, res) => {
-  const { proposal } = req.body;
+  const { proposal, recipe } = req.body;
 
   const item = {
     ...proposal,
     cookedAt: new Date().toISOString()
   };
+  if (recipe) {
+    item.recipe = recipe;
+  }
 
   const id = await addUserHistory(req.uid, item);
   res.json({ success: true, id });
@@ -707,7 +711,8 @@ app.get('/api/preferences', verifyAuth, async (req, res) => {
 });
 
 // ─── Start Server ───────────────────────────────────────
-if (process.env.NODE_ENV !== 'production' || process.env.VERCEL !== '1') {
+// ローカル起動の時のみlistenし、Vercel/Firebase Functionsの場合はエクスポートだけ行う
+if (!isServerless && process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => {
     console.log(`\n🍽️  mogu - 献立提案アプリ`);
     console.log(`   http://localhost:${PORT}`);

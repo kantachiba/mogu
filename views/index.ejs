@@ -326,6 +326,16 @@
             <input type="number" id="setting-budget" placeholder="800" min="100" max="5000" step="50" />
           </div>
           <div class="setting-item">
+            <label>献立の構成（複数選択可）</label>
+            <div class="menu-items-selection" style="display: flex; gap: 12px; flex-wrap: wrap;">
+              <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" name="setting-menu-item" value="主食"> 主食</label>
+              <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" name="setting-menu-item" value="主菜"> 主菜</label>
+              <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" name="setting-menu-item" value="副菜"> 副菜</label>
+              <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" name="setting-menu-item" value="汁物"> 汁物</label>
+              <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" name="setting-menu-item" value="デザート"> デザート</label>
+            </div>
+          </div>
+          <div class="setting-item">
             <label>アレルギー</label>
             <div class="tag-input-wrapper">
               <div id="allergy-tags" class="tag-list"></div>
@@ -493,6 +503,23 @@
       refreshIcons();
     }
 
+    // ─── Cooking State Persistence ──────────────────────────
+    function saveCookingState() {
+      if (state.selectedProposal && state.recipe) {
+        localStorage.setItem('mogu_cooking_state', JSON.stringify({
+          proposal: state.selectedProposal,
+          recipe: state.recipe,
+          historyId: state.currentHistoryId,
+          currentStep: state.currentStep,
+          timestamp: Date.now()
+        }));
+      }
+    }
+
+    function clearCookingState() {
+      localStorage.removeItem('mogu_cooking_state');
+    }
+
     // ─── Auth State Observer ──────────────────────────────
     auth.onAuthStateChanged(async (user) => {
       if (user) {
@@ -511,8 +538,33 @@
         // Update email display
         $('#user-email-display').textContent = user.email || '';
 
-        // Show home
-        showScreen('home');
+        const savedSession = localStorage.getItem('mogu_cooking_state');
+        if (savedSession) {
+          try {
+            const sessionData = JSON.parse(savedSession);
+            // Ignore if older than 12 hours
+            if (Date.now() - sessionData.timestamp < 12 * 60 * 60 * 1000) {
+              state.selectedProposal = sessionData.proposal;
+              state.recipe = sessionData.recipe;
+              state.currentHistoryId = sessionData.historyId;
+              state.currentStep = sessionData.currentStep || 0;
+              
+              $('#cooking-title').textContent = state.selectedProposal.title;
+              renderIngredientsDrawer(state.selectedProposal.ingredients || []);
+              renderStep(state.currentStep);
+              showScreen('cooking');
+            } else {
+              clearCookingState();
+              showScreen('home');
+            }
+          } catch(e) {
+            clearCookingState();
+            showScreen('home');
+          }
+        } else {
+          showScreen('home');
+        }
+        
         updateGreeting();
         loadConfig();
       } else {
@@ -632,6 +684,7 @@
     $('#btn-back-settings').addEventListener('click', () => showScreen('home'));
     $('#btn-back-cooking').addEventListener('click', () => {
       if (state.isPlaying) stopAudio();
+      clearCookingState();
       showRatingModal();
     });
 
@@ -687,9 +740,16 @@
           <span class="meta-item"><i data-lucide="wallet" class="lucide-xs"></i>${p.cost}</span>
         </div>
         <div class="proposal-menu">
-          <div class="menu-item"><span class="menu-label">🍚 主食</span><span>${p.menu.main_staple}</span></div>
-          <div class="menu-item"><span class="menu-label">🍖 主菜</span><span>${p.menu.main_dish}</span></div>
-          <div class="menu-item"><span class="menu-label">🥗 副菜</span><span>${p.menu.side_dish}</span></div>
+          ${Object.entries(p.menu).map(([k, v]) => {
+            const label = k === 'main_staple' ? '主食' : k === 'main_dish' ? '主菜' : k === 'side_dish' ? '副菜' : k;
+            let icon = '🍽️';
+            if (label === '主食') icon = '🍚';
+            if (label === '主菜') icon = '🍖';
+            if (label === '副菜') icon = '🥗';
+            if (label === '汁物') icon = '🥣';
+            if (label === 'デザート') icon = '🍮';
+            return `<div class="menu-item"><span class="menu-label">${icon} ${label}</span><span>${v}</span></div>`;
+          }).join('')}
         </div>
         <div class="proposal-ingredients">
           <h4><i data-lucide="shopping-bag" class="lucide-xs"></i>材料（一人前）</h4>
@@ -732,14 +792,6 @@
       showLoading(true, '調理ステップを準備中...');
 
       try {
-        // Save to history
-        const histRes = await authFetch('/api/history', {
-          method: 'POST',
-          body: JSON.stringify({ proposal })
-        });
-        const histData = await histRes.json();
-        state.currentHistoryId = histData.id;
-
         // Get recipe steps
         const res = await authFetch('/api/recipe', {
           method: 'POST',
@@ -750,9 +802,19 @@
         state.recipe = recipe;
         state.currentStep = 0;
 
+        // Save to history WITH recipe
+        const histRes = await authFetch('/api/history', {
+          method: 'POST',
+          body: JSON.stringify({ proposal, recipe })
+        });
+        const histData = await histRes.json();
+        state.currentHistoryId = histData.id;
+
+        saveCookingState();
+
         // Setup cooking screen
         $('#cooking-title').textContent = proposal.title;
-        renderIngredientsDrawer(proposal.ingredients);
+        renderIngredientsDrawer(proposal.ingredients || []);
         renderStep(0);
         showScreen('cooking');
 
@@ -819,6 +881,7 @@
     $('#btn-prev-step').addEventListener('click', () => {
       if (state.currentStep > 0) {
         state.currentStep--;
+        saveCookingState();
         renderStep(state.currentStep);
         if (state.voiceEnabled) speakStep(state.currentStep);
       }
@@ -828,11 +891,13 @@
       const steps = state.recipe.steps;
       if (state.currentStep < steps.length - 1) {
         state.currentStep++;
+        saveCookingState();
         renderStep(state.currentStep);
         if (state.voiceEnabled) speakStep(state.currentStep);
       } else {
         // Finished!
         stopAudio();
+        clearCookingState();
         showRatingModal();
       }
     });
@@ -1047,7 +1112,7 @@
         return;
       }
 
-      list.innerHTML = history.map(h => {
+      list.innerHTML = history.map((h, index) => {
         const date = new Date(h.cookedAt);
         const dateStr = `${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
         return `
@@ -1062,12 +1127,45 @@
               <span>${h.cost}</span>
             </div>
             <div class="history-menu">
-              ${h.menu.main_staple} ・ ${h.menu.main_dish} ・ ${h.menu.side_dish}
+              ${Object.values(h.menu).join(' ・ ')}
             </div>
+            ${h.recipe ? `
+            <button class="btn-history-recipe" data-index="${index}" style="margin-top: 12px; padding: 8px 16px; font-size: 0.9em; font-weight: bold; background-color: var(--color-primary, #d97736); color: white; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+              <i data-lucide="chef-hat" class="lucide-sm"></i> 作り方を見る
+            </button>` : ''}
           </div>
         </div>`;
       }).join('');
       refreshIcons();
+
+      // Attach events to "作り方を見る" buttons
+      $$('.btn-history-recipe').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const index = parseInt(btn.dataset.index, 10);
+          const h = history[index];
+          // Restoring the cooking state from history
+          state.selectedProposal = {
+            title: h.title,
+            time: h.time,
+            calories: h.calories,
+            cost: h.cost,
+            menu: h.menu,
+            ingredients: h.ingredients || [],
+            tags: h.tags || [],
+            description: h.description || ''
+          };
+          state.recipe = h.recipe;
+          state.currentHistoryId = h.id;
+          state.currentStep = 0;
+          
+          saveCookingState();
+          
+          $('#cooking-title').textContent = h.title;
+          renderIngredientsDrawer(state.selectedProposal.ingredients);
+          renderStep(0);
+          showScreen('cooking');
+        });
+      });
     }
 
     $('#btn-clear-history').addEventListener('click', async () => {
@@ -1094,6 +1192,11 @@
       $('#setting-tts-voice').value = c.ttsVoice || 'zundamon';
       $('#setting-cooking-level').value = c.cookingLevel || 'beginner';
       $('#setting-budget').value = c.budget || 800;
+
+      const menuItems = c.menuItems || ['主食', '主菜', '副菜'];
+      $$('input[name="setting-menu-item"]').forEach(cb => {
+        cb.checked = menuItems.includes(cb.value);
+      });
 
       renderTags('allergy-tags', c.allergies || []);
       renderTags('dislike-tags', c.dislikes || []);
@@ -1150,12 +1253,19 @@
         dislikes.push(el.textContent.replace('×', '').trim());
       });
 
+      const menuItems = Array.from($$('input[name="setting-menu-item"]:checked')).map(cb => cb.value);
+      if (menuItems.length === 0) {
+        showToast('献立の構成要素を1つ以上選択してください', 'warning');
+        return;
+      }
+
       const config = {
         sakuraApiUrl: $('#setting-api-url').value,
         model: $('#setting-model').value,
         ttsVoice: $('#setting-tts-voice').value,
         cookingLevel: $('#setting-cooking-level').value,
         budget: parseInt($('#setting-budget').value) || 800,
+        menuItems,
         allergies,
         dislikes
       };
